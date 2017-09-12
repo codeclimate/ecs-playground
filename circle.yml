@@ -1,0 +1,32 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - >
+      docker run
+      --env CIRCLE_BRANCH
+      --env CIRCLE_PROJECT_REPONAME
+      --env CIRCLE_TOKEN
+      --env GCR_JSON_KEY
+      --volume /var/run/docker.sock:/var/run/docker.sock
+      codeclimate/patrick pull || true
+    - make image
+
+test:
+  override:
+    - echo "nop"
+
+deployment:
+  registry:
+    branch: master
+    owner: codeclimate
+    commands:
+      - >
+        docker run
+        --env CIRCLE_BUILD_NUM
+        --env CIRCLE_PROJECT_REPONAME
+        --env GCR_JSON_KEY
+        --volume /var/run/docker.sock:/var/run/docker.sock
+        codeclimate/patrick push gcr
